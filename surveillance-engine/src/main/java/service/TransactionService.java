@@ -2,6 +2,7 @@ package com.surveillance.engine.service;
 
 import com.surveillance.engine.model.Transaction;
 import com.surveillance.engine.repository.TransactionRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -21,7 +22,9 @@ public class TransactionService {
         return repo.findById(id);
     }
 
+    @Transactional
     public Transaction save(Transaction transaction) {
+        transaction.setId(null);
         return repo.save(transaction);
     }
 
