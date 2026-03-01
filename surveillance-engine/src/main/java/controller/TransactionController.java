@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/transactions")
@@ -20,7 +21,7 @@ public class TransactionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Transaction> getById(@PathVariable Long id) {
+    public ResponseEntity<Transaction> getById(@PathVariable UUID id) {
         return service.getById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -33,8 +34,14 @@ public class TransactionController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Transaction> updateTransaction(
-            @PathVariable Long id,
+            @PathVariable UUID id,
             @RequestBody Transaction transaction) {
         return ResponseEntity.ok(service.update(id, transaction));
+    }
+
+    @GetMapping("/fromaccount")
+    public ResponseEntity<List<Transaction>> getByFromAccount(
+            @RequestParam("fromaccount") String fromAccount) {
+        return ResponseEntity.ok(service.getByFromAccount(fromAccount));
     }
 }
