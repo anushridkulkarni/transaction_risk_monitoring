@@ -3,7 +3,6 @@ package com.surveillance.engine.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Entity
 @Table(name = "transactions")
@@ -11,15 +10,8 @@ import java.util.UUID;
 public class Transaction {
 
     @Id
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID id;
-
-    @PrePersist
-    public void generateId() {
-        if (this.id == null) {
-            this.id = UUID.randomUUID();
-        }
-    }
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     private String fromAccount;
     private String toAccount;
