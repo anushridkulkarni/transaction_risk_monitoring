@@ -20,4 +20,8 @@ public class Transaction {
     private Integer riskScore = 0;
     private String status = "PENDING";
     private LocalDateTime createdAt = LocalDateTime.now();
+    private String assignedTo;
+    private String approvalStatus = "PENDING";
+    private String approvedBy;
+    private String customerUsername;
 }
