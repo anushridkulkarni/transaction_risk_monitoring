@@ -5,6 +5,7 @@ import com.surveillance.engine.repository.TransactionRepository;
 import com.surveillance.engine.rules.RuleEngineService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +17,9 @@ public class TransactionService {
 
     @Autowired
     private RuleEngineService ruleEngineService;
+
+    @Autowired
+    private AccountService accountService;
 
     public List<Transaction> getAll() {
         return repo.findAll();
@@ -36,6 +40,21 @@ public class TransactionService {
     public Transaction save(Transaction transaction) {
         ruleEngineService.evaluate(transaction);
         assignToManager(transaction);
+
+        if (transaction.getAmount() != null &&
+            transaction.getFromAccount() != null &&
+            transaction.getToAccount() != null) {
+            boolean success = accountService.transfer(
+                transaction.getFromAccount(),
+                transaction.getToAccount(),
+                BigDecimal.valueOf(transaction.getAmount())
+            );
+            if (!success) {
+                transaction.setStatus("FAILED");
+                transaction.setApprovalStatus("REJECTED");
+            }
+        }
+
         return repo.save(transaction);
     }
 

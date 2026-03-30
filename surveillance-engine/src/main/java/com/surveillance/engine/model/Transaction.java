@@ -24,4 +24,8 @@ public class Transaction {
     private String approvalStatus = "PENDING";
     private String approvedBy;
     private String customerUsername;
+    private String managerHint;
+    private String description;
+
+
 }

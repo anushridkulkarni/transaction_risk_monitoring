@@ -26,28 +26,35 @@ public class RuleEngineService {
     @Autowired
     private LateNightRule lateNightRule;
 
-    public void evaluate(Transaction transaction) {
-        // Reset risk score
-        transaction.setRiskScore(0);
+    @Autowired
+    private VelocityRule velocityRule;
 
-        // Set up facts
+    @Autowired
+    private AmountRule amountRule;
+
+    @Autowired
+    private TransactionTypeRule transactionTypeRule;
+
+    public void evaluate(Transaction transaction) {
+        transaction.setRiskScore(0);
+        transaction.setManagerHint("");
+
         Facts facts = new Facts();
         facts.put("transaction", transaction);
 
-        // Set up rules
         Rules rules = new Rules();
-        rules.register(highAmountRule);
-        rules.register(withdrawalRule);
+        rules.register(amountRule);
+        rules.register(transactionTypeRule);
+        rules.register(velocityRule);
         rules.register(sameAccountRule);
-        rules.register(internationalRule);
         rules.register(lateNightRule);
 
-        // Run the engine
         RulesEngine engine = new DefaultRulesEngine();
         engine.fire(rules, facts);
 
-        // Set status based on final score
-        int score = transaction.getRiskScore();
+        int score = Math.min(transaction.getRiskScore(), 100);
+        transaction.setRiskScore(score);
+
         if (score >= 75) {
             transaction.setStatus("ESCALATED");
         } else if (score >= 40) {
