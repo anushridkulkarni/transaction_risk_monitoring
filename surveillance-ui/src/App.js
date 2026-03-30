@@ -311,6 +311,10 @@ function ManagerScreen({ username, role, onLogout }) {
     fetchTransactions();
   };
 
+  const getHint = (transaction) => {
+    alert("Manager Hint: " + (transaction.managerHint || "No hint available"));
+  };
+
   const pending = transactions.filter(t => t.approvalStatus === 'PENDING').length;
   const approved = transactions.filter(t => t.approvalStatus === 'APPROVED').length;
   const escalated = transactions.filter(t => t.status === 'ESCALATED').length;
@@ -384,9 +388,19 @@ function ManagerScreen({ username, role, onLogout }) {
                     {t.approvalStatus === 'PENDING' && (
                       <div style={{ display: 'flex', gap: '6px' }}>
                         <button onClick={() => handleApprove(t.id)}
-                          style={{ padding: '6px 12px', backgroundColor: '#16a34a', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}>✓ Approve</button>
+                          style={{ padding: '6px 12px', backgroundColor: '#16a34a', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}>
+                          Approve
+                        </button>
+
                         <button onClick={() => handleReject(t.id)}
-                          style={{ padding: '6px 12px', backgroundColor: '#dc2626', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}>✗ Reject</button>
+                          style={{ padding: '6px 12px', backgroundColor: '#dc2626', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}>
+                          Reject
+                        </button>
+
+                        <button onClick={() => getHint(t)}
+                          style={{ padding: '6px 12px', backgroundColor: '#1d4ed8', border: 'none', borderRadius: '6px', color: 'white', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}>
+                          Get Hint
+                        </button>
                       </div>
                     )}
                     {t.approvalStatus !== 'PENDING' && (
