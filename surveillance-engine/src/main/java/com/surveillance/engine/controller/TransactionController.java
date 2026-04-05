@@ -47,6 +47,7 @@ public class TransactionController {
             @RequestHeader(value = "X-Username", required = false) String username) {
         if (username != null) {
             transaction.setCustomerUsername(username);
+            transaction.setManagerHint("This is Manager Hint");
         }
         return service.save(transaction);
     }

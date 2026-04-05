@@ -27,5 +27,4 @@ public class Transaction {
     private String managerHint;
     private String description;
 
-
 }
