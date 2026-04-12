@@ -189,17 +189,25 @@ Open inbound ports:
 5. **Full Audit Trail** for every decision
 
 ## Rule Engine
-Each rule adds risk points:
+Active Rules (from RuleEngineService): AmountRule, TransactionTypeRule, VelocityRule, SameAccountRule, LateNightRule
 
-| Rule | Condition | Risk Points |
-|------|-----------|-------------|
-| High Amount | > ₹10L | +40 |
-| Medium Amount | > ₹5L | +20 |
-| Withdrawal | Type=WD | +15 |
-| International | Type=INTL | +25 |
-| Crypto | Type=CRYPTO | +30 |
-| Same Account | from=to | +50 |
-| Late Night | 12am-5am | +20 |
+| Rule                | Triggers                               | Risk Score | Manager Hint                                   |
+| ------------------- | -------------------------------------- | ---------- | ---------------------------------------------- |
+| AmountRule          | Amount < 0                             | +100       | 🔴 REJECT: Negative amount detected            |
+|                     | Amount > ₹10L                          | +40        | 🚨 Very high value: Amount > ₹10L              |
+|                     | Amount > ₹5L                           | +20        | ⚠️ High value: Amount > ₹5L                    |
+|                     | Amount > ₹1L                           | +10        | ℹ️ Review needed: Amount > ₹1L                 |
+|                     | Exact round amounts (₹10K, ₹50K, etc.) | +15        | ⚠️ Suspicious: Exact round number amount       |
+| TransactionTypeRule | INTERNATIONAL                          | +25        | ⚠️ International transfer detected             |
+|                     | INTERNATIONAL > ₹5L                    | +40        | 🚨 Large international transfer > ₹5L          |
+|                     | CRYPTO                                 | +30        | ⚠️ Crypto transaction detected                 |
+|                     | CRYPTO > ₹1L                           | +50        | 🚨 Large crypto transaction > ₹1L              |
+|                     | WITHDRAWAL > ₹2L                       | +30        | ⚠️ Large withdrawal > ₹2L                      |
+| VelocityRule        | 3+ txns/5min                           | +35        | ⚠️ High velocity: 3+ transactions in 5 minutes |
+|                     | 5+ txns/1hr                            | +45        | 🚨 Suspicious: 5+ transactions in 1 hour       |
+|                     | 10+ txns/1day                          | +60        | 🔴 BLOCK: 10+ transactions in 1 day            |
+| SameAccountRule     | from=to account                        | +50        | 🔴 SUSPICIOUS: Transfer to same account        |
+| LateNightRule       | 12am-5am                               | +20        | ⚠️ Unusual: Transaction made between 12am-5am  |
 
 **Example Rule:**
 ```java
