@@ -12,28 +12,19 @@ import org.springframework.stereotype.Service;
 public class RuleEngineService {
 
     @Autowired
-    private HighAmountRule highAmountRule;
+    private AmountRule amountRule;
 
     @Autowired
-    private WithdrawalRule withdrawalRule;
-
-    @Autowired
-    private SameAccountRule sameAccountRule;
-
-    @Autowired
-    private InternationalRule internationalRule;
-
-    @Autowired
-    private LateNightRule lateNightRule;
+    private TransactionTypeRule transactionTypeRule;
 
     @Autowired
     private VelocityRule velocityRule;
 
     @Autowired
-    private AmountRule amountRule;
+    private SameAccountRule sameAccountRule;
 
     @Autowired
-    private TransactionTypeRule transactionTypeRule;
+    private LateNightRule lateNightRule;
 
     public void evaluate(Transaction transaction) {
         transaction.setRiskScore(0);
@@ -54,6 +45,10 @@ public class RuleEngineService {
 
         int score = Math.min(transaction.getRiskScore(), 100);
         transaction.setRiskScore(score);
+
+        if (transaction.getManagerHint() == null || transaction.getManagerHint().isEmpty()) {
+            transaction.setManagerHint("✅ No Risk Detected");
+        }
 
         if (score >= 75) {
             transaction.setStatus("ESCALATED");

@@ -18,7 +18,7 @@ public class TransactionTypeRule {
         String type = transaction.getTransactionType();
         double amount = transaction.getAmount() != null ? transaction.getAmount() : 0;
         boolean noDescription = transaction.getDescription() == null ||
-                                transaction.getDescription().trim().isEmpty();
+                transaction.getDescription().trim().isEmpty();
 
         if ("INTERNATIONAL".equalsIgnoreCase(type)) {
             transaction.setRiskScore(transaction.getRiskScore() + 25);
