@@ -1,5 +1,7 @@
 # Transaction Risk Monitoring
+
 A full-stack financial surveillance system that monitors transactions in real-time, applies configurable business rules, computes risk scores automatically, and displays actionable alerts on a live dashboard.
+
 ## Table of Contents
 - [Introduction](#introduction)
 - [Problem Statement](#problem-statement)
@@ -11,21 +13,24 @@ A full-stack financial surveillance system that monitors transactions in real-ti
 - [Rule Engine](#rule-engine)
 - [Risk Scoring](#risk-scoring)
 - [Project Structure](#project-structure)
-- [Backend Setup](#backend-setup)
-- [Frontend Setup](#frontend-setup)
+- [Local Setup](#local-setup)
+- [AWS EC2 Deployment](#aws-ec2-deployment)
 - [API Endpoints](#api-endpoints)
 - [Dashboard](#dashboard)
 - [Future Enhancements](#future-enhancements)
+
 ## Introduction
 In modern financial systems, digital transactions have exploded due to online banking, UPI, securities trading, and cross-border payments. This growth amplifies risks like fraud, money laundering, and compliance violations.
 
 **transaction_risk_monitoring** continuously monitors transaction streams, applies configurable rules, computes risk scores, and presents alerts on a live dashboard. Perfect for investment banking, payments, AML, and audit teams.
+
 ## Problem Statement
 Legacy surveillance systems suffer from:
 - **Batch processing** - End-of-day analysis misses real-time fraud
 - **Rigid rules** - Code changes needed for new scenarios
 - **No live visibility** - Risk teams lack unified real-time views
 - **Weak audit trails** - Flagged transactions lack clear justification
+
 ## Objectives
 - Build real-time transaction monitoring system
 - Create configurable rule engine (thresholds, velocity, patterns)
@@ -33,11 +38,12 @@ Legacy surveillance systems suffer from:
 - Deliver live compliance dashboard with alerts
 - Maintain complete audit-ready logs
 - Design scalable architecture for financial environments
+
 ## System Architecture
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    React.js Dashboard                        │
-│         (Live UI - localhost:3000)                          │
+│              (Live UI - localhost:3000)                      │
 └─────────────────────┬───────────────────────────────────────┘
                       │ REST API Calls (axios)
 ┌─────────────────────▼───────────────────────────────────────┐
@@ -57,6 +63,7 @@ Legacy surveillance systems suffer from:
 │                  (surveillance_db)                           │
 └─────────────────────────────────────────────────────────────┘
 ```
+
 ## Technologies Used
 | Layer | Technology | Purpose |
 |-------|------------|---------|
@@ -68,6 +75,7 @@ Legacy surveillance systems suffer from:
 | **Charts** | Recharts | Risk visualization |
 | **HTTP** | Axios | Frontend-backend communication |
 | **Build** | Maven (Backend), npm (Frontend) | Dependency management |
+
 ## Prerequisites
 - **Java 21** (OpenJDK recommended)
 - **Maven 3.9+**
@@ -75,51 +83,111 @@ Legacy surveillance systems suffer from:
 - **Node.js v20+** and **npm**
 - **IntelliJ IDEA** (recommended for Java)
 - **VS Code** (optional for React)
-## Backend Setup
-### 1. Database Setup
-```sql
-CREATE DATABASE surveillance_db;
-USE surveillance_db;
 
-CREATE TABLE transactions (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    from_account VARCHAR(50) NOT NULL,
-    to_account VARCHAR(50) NOT NULL,
-    amount DOUBLE NOT NULL,
-    transaction_type VARCHAR(50),
-    risk_score INT DEFAULT 0,
-    status VARCHAR(20) DEFAULT 'PENDING',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+## Project Structure
+```text
+surveillance-engine/          # Spring Boot Backend
+├── src/main/java/com/surveillance/
+│   ├── model/Transaction.java
+│   ├── repository/TransactionRepository.java
+│   ├── service/TransactionService.java
+│   ├── controller/TransactionController.java
+│   └── rules/*.java
+└── pom.xml
+
+surveillance-ui/              # React Frontend
+├── src/App.js
+├── package.json
+└── public/
 ```
-### 2. Configure Database
-Update `surveillance-engine/src/main/resources/application.properties`:
+
+## Local Setup
+### Backend
+1. Update `surveillance-engine/src/main/resources/application.properties`:
 ```properties
 spring.datasource.url=jdbc:mysql://localhost:3306/surveillance_db
 spring.datasource.username=root
 spring.datasource.password=your_password
 spring.jpa.hibernate.ddl-auto=update
+server.port=8080
 ```
-### 3. Build & Run Backend
+
+2. Start the backend:
 ```bash
 cd surveillance-engine
 ./mvnw clean install
 ./mvnw spring-boot:run
 ```
-**Backend runs on: `http://localhost:8080`**
-## Frontend Setup
+
+3. Verify the backend:
+```bash
+curl http://localhost:8080
+```
+
+### Frontend
+1. Update the API URL in `surveillance-ui/src/App.js`:
+```js
+const API_URL = 'http://localhost:8080';
+```
+
+2. Start the frontend:
 ```bash
 cd surveillance-ui
 npm install
 npm start
 ```
-**Dashboard runs on: `http://localhost:3000`**
+
+3. Open the dashboard:
+```text
+http://localhost:3000
+```
+
+## AWS EC2 Deployment
+### 1. SSH into the EC2 instance
+```bash
+ssh -i "your-keypair.pem" ubuntu@<ec2-public-ip>
+```
+
+### 2. Build and run the Spring Boot backend
+```bash
+cd ~/javaproject/transaction_risk_monitoring/surveillance-engine
+./mvnw clean package
+nohup java -jar target/*.jar > app.log 2>&1 &
+```
+
+### 3. Build and run the React frontend
+```bash
+cd ~/javaproject/transaction_risk_monitoring/surveillance-ui
+npm install
+npm run build
+sudo npm install -g serve
+nohup serve -s build -l 3000 > react.log 2>&1 &
+```
+
+### 4. Update the frontend API URL for AWS
+In `surveillance-ui/src/App.js`, use the EC2 public IP or domain:
+```js
+const API_URL = 'http://<ec2-public-ip>:8080';
+```
+
+### 5. Open the app
+```text
+http://<ec2-public-ip>:3000
+```
+
+### 6. Ensure AWS security group allows traffic
+Open inbound ports:
+- **3000** for React frontend
+- **8080** for Spring Boot backend
+- **22** for SSH access
+
 ## Core Features
 1. **Real-Time Transaction Ingestion** via REST API
 2. **Configurable Rule Engine** - Add rules without code changes
 3. **Automatic Risk Scoring** (0-100 scale)
 4. **Live Dashboard** with color-coded alerts
 5. **Full Audit Trail** for every decision
+
 ## Rule Engine
 Each rule adds risk points:
 
@@ -142,34 +210,21 @@ public class HighAmountRule {
     public boolean when(@Fact("transaction") Transaction t) {
         return t.getAmount() > 1000000;
     }
+
     @Action
     public void then(@Fact("transaction") Transaction t) {
         t.setRiskScore(t.getRiskScore() + 40);
     }
 }
 ```
+
 ## Risk Scoring
 | Score | Status | Indicator |
 |-------|--------|-----------|
 | 0-39 | PENDING | 🟢 |
 | 40-74 | FLAGGED | 🟡 |
 | 75-100 | ESCALATED | 🔴 |
-## Project Structure
-```
-surveillance-engine/          # Spring Boot Backend
-├── src/main/java/com/surveillance/
-│   ├── model/Transaction.java
-│   ├── repository/TransactionRepository.java
-│   ├── service/TransactionService.java
-│   ├── controller/TransactionController.java
-│   └── rules/*.java
-└── pom.xml
 
-surveillance-ui/              # React Frontend
-├── src/App.js
-├── package.json
-└── public/
-```
 ## API Endpoints
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -182,16 +237,18 @@ surveillance-ui/              # React Frontend
 ```json
 {
   "fromAccount": "ACC001",
-  "toAccount": "ACC002", 
+  "toAccount": "ACC002",
   "amount": 1500000,
   "transactionType": "TRANSFER"
 }
 ```
+
 ## Dashboard
 - **Transaction Form** - Add transactions instantly
 - **Live Table** - Color-coded risk indicators
 - **Edit Mode** - Update any transaction
 - **Risk Visualization** - 🟢🟡🔴 indicators
+
 ## Future Enhancements
 - Kafka for high-throughput streaming
 - WebSockets for real-time updates
@@ -199,5 +256,3 @@ surveillance-ui/              # React Frontend
 - Graph analysis for networks
 - Docker/Kubernetes deployment
 - Multi-tenant support
-
-***
